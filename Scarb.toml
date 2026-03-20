@@ -1,0 +1,10 @@
+[package]
+name = "aurumvault"
+version = "0.1.0"
+edition = "2024_07"
+
+[dependencies]
+starknet = ">=2.16.1"
+openzeppelin = "3.0.0"
+
+[[target.starknet-contract]]
