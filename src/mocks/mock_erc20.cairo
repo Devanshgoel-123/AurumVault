@@ -1,15 +1,15 @@
 /// A simple mock ERC20 token that supports minting for testing purposes.
 #[starknet::contract]
 pub mod MockERC20 {
-    use openzeppelin::token::erc20::{ERC20Component};
     use openzeppelin::introspection::src5::SRC5Component;
-    use starknet::storage::StoragePointerWriteAccess;
+    use openzeppelin::token::erc20::ERC20Component;
     use starknet::ContractAddress;
-    use openzeppelin::token::erc20::interface::IERC20Mixin;
-
+    use starknet::storage::StoragePointerWriteAccess;
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
 
+    #[abi(embed_v0)]
+    impl ERC20MixinImpl = ERC20Component::ERC20MixinImpl<ContractState>;
     impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
 
     #[storage]
@@ -74,66 +74,7 @@ pub mod MockERC20 {
         }
     }
 
-    #[abi(embed_v0)]
-    impl MockERC20Impl of IERC20Mixin<ContractState> {
-        fn total_supply(self: @ContractState) -> u256 {
-            self.erc20.total_supply()
-        }
-
-        fn balance_of(self: @ContractState, account: ContractAddress) -> u256 {
-            self.erc20.balance_of(account)
-        }
-
-        fn allowance(
-            self: @ContractState, owner: ContractAddress, spender: ContractAddress
-        ) -> u256 {
-            self.erc20.allowance(owner, spender)
-        }
-
-        fn transfer(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool {
-            self.erc20.transfer(recipient, amount)
-        }
-
-        fn transfer_from(
-            ref self: ContractState,
-            sender: ContractAddress,
-            recipient: ContractAddress,
-            amount: u256,
-        ) -> bool {
-            self.erc20.transfer_from(sender, recipient, amount)
-        }
-
-        fn approve(ref self: ContractState, spender: ContractAddress, amount: u256) -> bool {
-            self.erc20.approve(spender, amount)
-        }
-
-        fn name(self: @ContractState) -> ByteArray {
-            self.erc20.name()
-        }
-
-        fn symbol(self: @ContractState) -> ByteArray {
-            self.erc20.symbol()
-        }
-
-        fn decimals(self: @ContractState) -> u8 {
-            self.token_decimals.read()
-        }
-
-        fn totalSupply(self: @ContractState) -> u256 {
-            self.total_supply()
-        }
-
-        fn balanceOf(self: @ContractState, account: ContractAddress) -> u256 {
-            self.balance_of(account)
-        }
-
-        fn transferFrom(
-            ref self: ContractState,
-            sender: ContractAddress,
-            recipient: ContractAddress,
-            amount: u256,
-        ) -> bool {
-            self.transfer_from(sender, recipient, amount)
-        }
+    impl ERC20ImmutableConfig of ERC20Component::ImmutableConfig {
+        const DECIMALS: u8 = 8;
     }
 }

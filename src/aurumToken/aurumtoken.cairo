@@ -50,6 +50,17 @@ pub mod aurumtoken {
             self.emit(SharesMinted { recipient, aubtc_amount: amount, stonebtc_deposited: stonebtc_amount });
         }
 
+        fn set_vault(ref self: ContractState, new_vault: ContractAddress) {
+            assert_only_owner(@self);
+            assert_non_zero_address(new_vault);
+            assert(new_vault != self.vault.read(), Errors::VAULT_ALREADY_SET);
+            let old_vault = self.vault.read();
+            self.accesscontrol._grant_role(VAULT_ROLE, new_vault);
+            self.vault.write(new_vault);
+            self.accesscontrol._revoke_role(VAULT_ROLE, old_vault);
+            self.emit(VaultUpdated { old_vault, new_vault });
+        }
+
         fn burn(ref self: ContractState, from: ContractAddress, amount: u256) {
             assert_only_vault(@self);
             assert_non_zero_address(from);
@@ -148,6 +159,16 @@ pub mod aurumtoken {
         SharesMinted: SharesMinted,
         SharesBurned: SharesBurned,
         WhitelistUpdated: WhitelistUpdated,
+        VaultUpdated: VaultUpdated,
+    }
+
+
+    #[derive(Drop, starknet::Event)]
+    pub struct VaultUpdated {
+        #[key]
+        new_vault: ContractAddress,
+        #[key]
+        old_vault: ContractAddress,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -173,17 +194,16 @@ pub mod aurumtoken {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, vault: ContractAddress) {
-        assert_non_zero_address(vault);
-        assert(self.vault.read().is_zero(), Errors::VAULT_ALREADY_SET);
-
+    fn constructor(ref self: ContractState) {
         let owner = get_caller_address();
         self.ownable.initializer(owner);
         self.accesscontrol.initializer();
-        self.vault.write(vault);
+        self.vault.write(owner);
         self.erc20.initializer("Aurum BTC", "auBTC");
+        self.accesscontrol.set_role_admin(OWNER_ROLE, OWNER_ROLE);
+        self.accesscontrol.set_role_admin(VAULT_ROLE, OWNER_ROLE);
         self.accesscontrol._grant_role(OWNER_ROLE, owner);
-        self.accesscontrol._grant_role(VAULT_ROLE, vault);
+        self.accesscontrol._grant_role(VAULT_ROLE, owner);
     }
 
     fn assert_only_vault(self: @ContractState) {

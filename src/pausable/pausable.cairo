@@ -63,3 +63,5 @@ pub mod pausable {
         }
     }
 }
+
+// good practice to emit state changes

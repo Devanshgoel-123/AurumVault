@@ -11,3 +11,9 @@ openzeppelin = "3.0.0"
 
 [dev-dependencies]
 snforge_std = "0.58.0"
+
+[profile.dev.cairo]
+unstable-add-statements-functions-debug-info = true
+unstable-add-statements-code-locations-debug-info = true
+panic-backtrace = true
+inlining-strategy= "avoid"

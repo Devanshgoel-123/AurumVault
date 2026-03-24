@@ -114,6 +114,7 @@ pub mod vault {
             assert_non_zero_address(get_caller_address());
             assert_non_zero_amount(amount);
             let price_in_usd = get_btc_usd_price(@self);
+            // let price_in_usd = 100000_u128;
             let asset_value_in_usd = get_asset_value_in_usd(@self, amount, price_in_usd);
             assert(
                 asset_value_in_usd >= self.minimum_deposit_in_usd.read(), Errors::BELOW_MIN_DEPOSIT,

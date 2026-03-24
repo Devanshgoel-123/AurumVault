@@ -23,4 +23,5 @@ pub trait IAurumToken<TContractState> {
     fn get_deposit_record(self: @TContractState, address: ContractAddress) -> DepositRecord;
     fn get_vault(self: @TContractState) -> ContractAddress;
     fn get_owner(self: @TContractState) -> ContractAddress;
+    fn set_vault(ref self: TContractState, new_vault: ContractAddress);
 }
