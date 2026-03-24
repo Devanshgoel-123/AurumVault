@@ -19,3 +19,8 @@ pub mod pausable {
 pub mod pragma {
     pub mod pragma;
 }
+
+pub mod mocks {
+    pub mod mock_oracle;
+    pub mod mock_erc20;
+}

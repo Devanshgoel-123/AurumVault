@@ -8,3 +8,6 @@ starknet = ">=2.16.1"
 openzeppelin = "3.0.0"
 
 [[target.starknet-contract]]
+
+[dev-dependencies]
+snforge_std = "0.58.0"

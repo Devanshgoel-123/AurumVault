@@ -21,4 +21,6 @@ pub trait IAurumToken<TContractState> {
     fn is_whitelisted(self: @TContractState, address: ContractAddress) -> bool;
     fn get_all_whitelisted(self: @TContractState) -> Array<ContractAddress>;
     fn get_deposit_record(self: @TContractState, address: ContractAddress) -> DepositRecord;
+    fn get_vault(self: @TContractState) -> ContractAddress;
+    fn get_owner(self: @TContractState) -> ContractAddress;
 }

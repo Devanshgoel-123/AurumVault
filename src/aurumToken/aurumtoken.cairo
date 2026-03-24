@@ -102,6 +102,14 @@ pub mod aurumtoken {
         fn get_deposit_record(self: @ContractState, address: ContractAddress) -> DepositRecord {
             self.deposit_records.read(address)
         }
+
+        fn get_vault(self: @ContractState) -> ContractAddress {
+            self.vault.read()
+        }
+
+        fn get_owner(self: @ContractState) -> ContractAddress {
+            self.ownable.owner()
+        }
     }
 
     impl ERC20HooksImpl of ERC20Component::ERC20HooksTrait<ContractState> {}
