@@ -10,4 +10,5 @@ pub mod Errors {
     pub const ZERO_ADDRESS: felt252 = 'ZERO_ADDRESS';
     pub const ZERO_SUPPLY_AUBTC: felt252 = 'ZERO_SUPPLY_AUBTC';
     pub const TRANSFER_FAILED: felt252 = 'TRANSFER_FAILED';
+    pub const NOT_OWNER: felt252 = 'NOT_OWNER';
 }

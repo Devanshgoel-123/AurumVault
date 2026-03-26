@@ -37,6 +37,7 @@ pub mod pausable {
         assert(!address.is_zero(), Errors::ZERO_ADDRESS);
     }
 
+    
     #[embeddable_as(PausableImpl)]
     impl Pausable<
         TContractState,
@@ -64,4 +65,3 @@ pub mod pausable {
     }
 }
 
-// good practice to emit state changes

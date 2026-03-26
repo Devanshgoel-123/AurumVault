@@ -23,6 +23,8 @@ pub mod vault {
     impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
 
+    #[abi(embed_v0)]
+    impl PausableImpl = PausableComponent::PausableImpl<ContractState>;
 
     #[storage]
     pub struct Storage {
@@ -108,6 +110,7 @@ pub mod vault {
         self.btc_usd_asset_id.write(btc_usd_asset_id);
     }
 
+    #[abi(embed_v0)]
     impl VaultImpl of IVault<ContractState> {
         fn deposit(ref self: ContractState, amount: u256) -> u256 {
             assert_not_paused(@self);
@@ -127,13 +130,13 @@ pub mod vault {
             assert(stonebtc_balance >= amount, Errors::INSUFFICIENT_ASSETS);
             let fee_bps: u256 = self.deposit_fee.read().into();
             let fee = amount * fee_bps / 10000_u256;
+            let net_amount = amount - fee;
+            let shares_to_mint = self.convert_to_shares(net_amount);
             assert(stone_btc_dispatcher.transfer_from(caller, get_contract_address(), amount), Errors::TRANSFER_FAILED);
             self.accumulated_fees.write(self.accumulated_fees.read() + fee);
-            let net_amount = amount - fee;
             let aubtc_dispatcher = IAurumTokenDispatcher {
                 contract_address: self.aurum_token_address.read(),
             };
-            let shares_to_mint = self.convert_to_shares(net_amount);
             aubtc_dispatcher.mint(caller, shares_to_mint, net_amount);
             self
                 .emit(
@@ -165,7 +168,7 @@ pub mod vault {
             let stonebtc_dispatcher = ERC20ABIDispatcher {
                 contract_address: self.stonebtc_address.read(),
             };
-            stonebtc_dispatcher.transfer(caller, stonebtc_amount_to_return);
+            assert(stonebtc_dispatcher.transfer(caller, stonebtc_amount_to_return), Errors::TRANSFER_FAILED);
             self
                 .emit(
                     Redeemed {
@@ -177,9 +180,26 @@ pub mod vault {
             return stonebtc_amount_to_return;
         }
 
-        fn collect_fees(ref self: ContractState, recipient: ContractAddress) {}
+        fn collect_fees(ref self: ContractState, recipient: ContractAddress) {
+            assert_non_zero_address(recipient);
+            assert_only_owner(@self);
+            let fee = self.accumulated_fees.read();
+            self.accumulated_fees.write(0);
+            let stonebtc_dispatcher = ERC20ABIDispatcher {
+                contract_address: self.stonebtc_address.read(),
+            };
+            assert(stonebtc_dispatcher.transfer(recipient, fee), Errors::TRANSFER_FAILED);
+            self.emit(FeesCollected { recipient, amount: fee });
+        }
 
-        fn update_fee(ref self: ContractState, new_fee: u16) {}
+        fn update_fee(ref self: ContractState, new_fee: u16) {
+            assert_only_owner(@self);
+            assert_not_paused(@self);
+            assert(new_fee <= 1000, Errors::FEE_TOO_HIGH);
+            let old_fee = self.deposit_fee.read();
+            self.deposit_fee.write(new_fee);
+            self.emit(FeeUpdated { old_fee_bps: old_fee, new_fee_bps: new_fee });
+        }
 
 
         //View Functions
@@ -227,6 +247,11 @@ pub mod vault {
         assert(!address.is_zero(), Errors::ZERO_ADDRESS);
     }
 
+    fn assert_only_owner(self: @ContractState) {
+        let caller = get_caller_address();
+        assert(caller == self.ownable.owner(), Errors::NOT_OWNER);
+    }
+
     fn get_btc_usd_price(self: @ContractState) -> u128 {
         let pragma_dispatcher = IPragmaABIDispatcher {
             contract_address: self.oracle_address.read(),
@@ -234,8 +259,14 @@ pub mod vault {
         let price = pragma_dispatcher
             .get_data_median(DataType::SpotEntry(self.btc_usd_asset_id.read()));
         assert(price.expiration_timestamp.is_none(), Errors::STALE_ORACLE);
+        let current_timestamp = get_block_timestamp();
+        let min_acceptable_timestamp = if current_timestamp > HALF_HOUR_IN_SECONDS {
+            current_timestamp - HALF_HOUR_IN_SECONDS
+        } else {
+            0_u64
+        };
         assert(
-            price.last_updated_timestamp > get_block_timestamp() - HALF_HOUR_IN_SECONDS,
+            price.last_updated_timestamp >= min_acceptable_timestamp,
             Errors::STALE_ORACLE,
         );
         return price.price;
