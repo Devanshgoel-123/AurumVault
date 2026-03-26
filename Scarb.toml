@@ -17,3 +17,8 @@ unstable-add-statements-functions-debug-info = true
 unstable-add-statements-code-locations-debug-info = true
 panic-backtrace = true
 inlining-strategy= "avoid"
+
+[[tool.snforge.fork]]
+name = "SEPOLIA"
+url = "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_10/<API_KEY>"
+block_id.number = "8083665"
