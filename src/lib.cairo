@@ -24,3 +24,7 @@ pub mod mocks {
     pub mod mock_oracle;
     pub mod mock_erc20;
 }
+
+pub mod stoneBtc {
+    pub mod stonebtc;
+}

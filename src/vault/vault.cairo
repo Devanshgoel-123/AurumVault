@@ -225,7 +225,7 @@ pub mod vault {
             if total_supply == 0 {
                 return assets * 10_u256.pow(10);
             } else {
-                return (assets * total_supply) / total_assets;
+                return mul_div_down(assets, total_supply, total_assets);
             }
         }
 
@@ -233,7 +233,7 @@ pub mod vault {
             let total_assets = self.total_assets();
             let total_supply = self.total_supply();
             assert(total_supply > 0, Errors::ZERO_SUPPLY_AUBTC);
-            return (shares * total_assets) / total_supply;
+            return mul_div_down(shares, total_assets, total_supply);
         }
 
         fn get_tvl_usd(self: @ContractState) -> u256 {
@@ -274,7 +274,14 @@ pub mod vault {
 
     fn get_asset_value_in_usd(self: @ContractState, amount: u256, price_in_usd: u128) -> u256 {
         let price_in_usd: u256 = price_in_usd.into();
-        return amount * price_in_usd;
+        let divider = 10_u256.pow(8);
+        let price_in_usd = price_in_usd / divider;
+        return mul_div_down(amount, price_in_usd, divider);
+    }
+
+    fn mul_div_down(x: u256, y: u256, denominator: u256) -> u256 {
+        assert(!denominator.is_zero(), Errors::ZERO_AMOUNT);
+        return (x * y) / denominator;
     }
 
     fn assert_non_zero_amount(amount: u256) {

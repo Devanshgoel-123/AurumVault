@@ -8,6 +8,7 @@ starknet = ">=2.16.1"
 openzeppelin = "3.0.0"
 
 [[target.starknet-contract]]
+casm = true
 
 [dev-dependencies]
 snforge_std = "0.58.0"
@@ -22,3 +23,6 @@ inlining-strategy= "avoid"
 name = "SEPOLIA"
 url = "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_10/<API_KEY>"
 block_id.number = "8083665"
+
+[profile.release.cairo]
+sierra-replace-ids = true
