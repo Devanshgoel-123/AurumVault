@@ -69,6 +69,7 @@ fn test_pragma_btc_price_sanity() {
     let oracle_address: ContractAddress = PRAGMA_ORACLE.try_into().unwrap();
     let oracle = IPragmaABIDispatcher { contract_address: oracle_address };
     let response = oracle.get_data_median(DataType::SpotEntry(BTC_USD_ASSET_ID));
+    println!("response: {:?}", response.last_updated);
     let price = response.price;
     let divider = 10_u128.pow(response.decimals);
     assert(price / divider > 10_000, 'BTC price too low');

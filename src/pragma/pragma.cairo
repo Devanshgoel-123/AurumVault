@@ -2,7 +2,7 @@
 pub struct PragmaPricesResponse {
     pub price: u128,
     pub decimals: u32,
-    pub last_updated_timestamp: u64,
+    pub last_updated: u64,
     pub num_sources_aggregated: u32,
     pub expiration_timestamp: Option<u64>,
 }

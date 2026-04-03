@@ -194,8 +194,7 @@ pub mod aurumtoken {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState) {
-        let owner = get_caller_address();
+    fn constructor(ref self: ContractState, owner: ContractAddress) {
         self.ownable.initializer(owner);
         self.accesscontrol.initializer();
         self.vault.write(owner);

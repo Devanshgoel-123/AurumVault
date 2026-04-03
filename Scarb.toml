@@ -21,7 +21,7 @@ inlining-strategy= "avoid"
 
 [[tool.snforge.fork]]
 name = "SEPOLIA"
-url = "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_10/<API_KEY>"
+url = "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_10/xeuGiQZ_9pTxu2oD9AMPV"
 block_id.number = "8083665"
 
 [profile.release.cairo]

@@ -14,6 +14,7 @@ pub mod vault {
     use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
 
     pub const OWNER_ROLE: felt252 = selector!("OWNER_ROLE");
+    pub const MINIMUM_DEPOSIT_IN_USD: u256 = 10_u256.pow(6);
     // ───────── Constants ─────────
     const HALF_HOUR_IN_SECONDS: u64 = 1800;
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
@@ -99,8 +100,7 @@ pub mod vault {
         assert_non_zero_address(aurum_token_address);
         assert_non_zero_address(oracle_address);
         assert(deposit_fee <= 1000, Errors::FEE_TOO_HIGH);
-        assert(minimum_deposit_in_usd > 10, Errors::BELOW_MIN_DEPOSIT);
-        let owner = get_caller_address();
+        assert(minimum_deposit_in_usd > MINIMUM_DEPOSIT_IN_USD, Errors::BELOW_MIN_DEPOSIT);
         self.ownable.initializer(owner);
         self.stonebtc_address.write(stonebtc_address);
         self.aurum_token_address.write(aurum_token_address);
@@ -260,13 +260,8 @@ pub mod vault {
             .get_data_median(DataType::SpotEntry(self.btc_usd_asset_id.read()));
         assert(price.expiration_timestamp.is_none(), Errors::STALE_ORACLE);
         let current_timestamp = get_block_timestamp();
-        let min_acceptable_timestamp = if current_timestamp > HALF_HOUR_IN_SECONDS {
-            current_timestamp - HALF_HOUR_IN_SECONDS
-        } else {
-            0_u64
-        };
         assert(
-            price.last_updated_timestamp >= min_acceptable_timestamp,
+            price.last_updated >= current_timestamp - HALF_HOUR_IN_SECONDS,
             Errors::STALE_ORACLE,
         );
         return price.price;

@@ -39,7 +39,7 @@ pub mod MockPriceOracle {
             return PragmaPricesResponse {
                 price: price_u128,
                 decimals: 8_u32,
-                last_updated_timestamp: get_block_timestamp(),
+                last_updated: get_block_timestamp(),
                 num_sources_aggregated: 1_u32,
                 expiration_timestamp: None,
             };
